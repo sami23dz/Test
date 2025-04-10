@@ -1,0 +1,59 @@
+-- UI Setup
+local player = game:GetService("Players").LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FlightUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 100, 0, 50)
+toggleButton.Position = UDim2.new(0.05, 0, 0.8, 0)
+toggleButton.Text = "Fly ON"
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextScaled = true
+toggleButton.Parent = screenGui
+
+-- Vars
+local flying = false
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local camera = workspace.CurrentCamera
+local speed = 50
+local flightConnection = nil
+
+-- Flight toggle
+local function startFlying()
+    flying = true
+    humanoid.PlatformStand = true
+    flightConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        rootPart.CFrame = rootPart.CFrame + Vector3.new(0, speed * dt, 0)
+        rootPart.Velocity = Vector3.new()
+        rootPart.RotVelocity = Vector3.new()
+    end)
+end
+
+local function stopFlying()
+    flying = false
+    humanoid.PlatformStand = false
+    if flightConnection then
+        flightConnection:Disconnect()
+        flightConnection = nil
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(function()
+    if flying then
+        stopFlying()
+        toggleButton.Text = "Fly ON"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+    else
+        startFlying()
+        toggleButton.Text = "Fly OFF"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    end
+end)
