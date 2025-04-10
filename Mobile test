@@ -1,59 +1,91 @@
--- UI Setup
-local player = game:GetService("Players").LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+if game.PlaceId == 1962086868 then
+    repeat task.wait() until game:IsLoaded()
+    local player = game.Players.LocalPlayer
+    repeat task.wait() until player.Character
+    local char = player.Character
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+    local camera = workspace.CurrentCamera
+    local UIS = game:GetService("UserInputService")
 
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "FlightUI"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+    local flying = false
+    local speed = 60
+    local controls = {
+        forward = false,
+        backward = false,
+        left = false,
+        right = false
+    }
 
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 100, 0, 50)
-toggleButton.Position = UDim2.new(0.05, 0, 0.8, 0)
-toggleButton.Text = "Fly ON"
-toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.TextScaled = true
-toggleButton.Parent = screenGui
+    local flightConn = nil
 
--- Vars
-local flying = false
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local rootPart = character:WaitForChild("HumanoidRootPart")
-local camera = workspace.CurrentCamera
-local speed = 50
-local flightConnection = nil
+    local function getInputDirection()
+        local moveDir = Vector3.new()
+        if controls.forward then moveDir = moveDir + Vector3.new(0, 0, -1) end
+        if controls.backward then moveDir = moveDir + Vector3.new(0, 0, 1) end
+        if controls.left then moveDir = moveDir + Vector3.new(-1, 0, 0) end
+        if controls.right then moveDir = moveDir + Vector3.new(1, 0, 0) end
+        return moveDir
+    end
 
--- Flight toggle
-local function startFlying()
-    flying = true
-    humanoid.PlatformStand = true
-    flightConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-        rootPart.CFrame = rootPart.CFrame + Vector3.new(0, speed * dt, 0)
-        rootPart.Velocity = Vector3.new()
-        rootPart.RotVelocity = Vector3.new()
+    local function ToggleFlight()
+        flying = not flying
+        if flying then
+            hum.PlatformStand = true
+            flightConn = game:GetService("RunService").Heartbeat:Connect(function(dt)
+                local moveInput = getInputDirection()
+                if moveInput.Magnitude > 0 then
+                    local camCF = camera.CFrame
+                    local moveDir = (camCF:VectorToWorldSpace(moveInput)).Unit
+                    hrp.CFrame = hrp.CFrame + moveDir * speed * dt
+                end
+
+                hrp.Velocity = Vector3.zero
+                hrp.RotVelocity = Vector3.zero
+                hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + camera.CFrame.LookVector)
+            end)
+        else
+            if flightConn then flightConn:Disconnect() end
+            hum.PlatformStand = false
+        end
+    end
+
+    -- UI
+    local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+    local flyButton = Instance.new("TextButton", screenGui)
+    flyButton.Size = UDim2.new(0, 140, 0, 50)
+    flyButton.Position = UDim2.new(0.5, -70, 0.85, 0)
+    flyButton.Text = "Toggle Flight"
+    flyButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    flyButton.TextColor3 = Color3.new(1, 1, 1)
+    flyButton.TextScaled = true
+
+    flyButton.MouseButton1Click:Connect(ToggleFlight)
+
+    -- Input bindings
+    UIS.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.W then controls.forward = true end
+        if input.KeyCode == Enum.KeyCode.S then controls.backward = true end
+        if input.KeyCode == Enum.KeyCode.A then controls.left = true end
+        if input.KeyCode == Enum.KeyCode.D then controls.right = true end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.W then controls.forward = false end
+        if input.KeyCode == Enum.KeyCode.S then controls.backward = false end
+        if input.KeyCode == Enum.KeyCode.A then controls.left = false end
+        if input.KeyCode == Enum.KeyCode.D then controls.right = false end
+    end)
+
+    player.CharacterAdded:Connect(function(c)
+        char = c
+        hrp = char:WaitForChild("HumanoidRootPart")
+        hum = char:WaitForChild("Humanoid")
+        if flying then
+            ToggleFlight()
+            task.wait(0.3)
+            ToggleFlight()
+        end
     end)
 end
-
-local function stopFlying()
-    flying = false
-    humanoid.PlatformStand = false
-    if flightConnection then
-        flightConnection:Disconnect()
-        flightConnection = nil
-    end
-end
-
-toggleButton.MouseButton1Click:Connect(function()
-    if flying then
-        stopFlying()
-        toggleButton.Text = "Fly ON"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-    else
-        startFlying()
-        toggleButton.Text = "Fly OFF"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    end
-end)
