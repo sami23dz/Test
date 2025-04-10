@@ -21,10 +21,10 @@ if game.PlaceId == 1962086868 then
 
     local function getInputDirection()
         local moveDir = Vector3.new()
-        if controls.forward then moveDir = moveDir + Vector3.new(0, 0, -1) end
-        if controls.backward then moveDir = moveDir + Vector3.new(0, 0, 1) end
-        if controls.left then moveDir = moveDir + Vector3.new(-1, 0, 0) end
-        if controls.right then moveDir = moveDir + Vector3.new(1, 0, 0) end
+        if controls.forward then moveDir += Vector3.new(0, 0, -1) end
+        if controls.backward then moveDir += Vector3.new(0, 0, 1) end
+        if controls.left then moveDir += Vector3.new(-1, 0, 0) end
+        if controls.right then moveDir += Vector3.new(1, 0, 0) end
         return moveDir
     end
 
@@ -39,7 +39,6 @@ if game.PlaceId == 1962086868 then
                     local moveDir = (camCF:VectorToWorldSpace(moveInput)).Unit
                     hrp.CFrame = hrp.CFrame + moveDir * speed * dt
                 end
-
                 hrp.Velocity = Vector3.zero
                 hrp.RotVelocity = Vector3.zero
                 hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + camera.CFrame.LookVector)
@@ -50,19 +49,30 @@ if game.PlaceId == 1962086868 then
         end
     end
 
-    -- UI
-    local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-    local flyButton = Instance.new("TextButton", screenGui)
-    flyButton.Size = UDim2.new(0, 140, 0, 50)
-    flyButton.Position = UDim2.new(0.5, -70, 0.85, 0)
-    flyButton.Text = "Toggle Flight"
+    -- UI (جوال)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "FlightUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+
+    local flyButton = Instance.new("TextButton")
+    flyButton.Name = "FlyButton"
+    flyButton.Size = UDim2.new(0, 150, 0, 50)
+    flyButton.Position = UDim2.new(0.5, -75, 0.8, 0)
+    flyButton.Text = "تشغيل الطيران"
     flyButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
     flyButton.TextColor3 = Color3.new(1, 1, 1)
     flyButton.TextScaled = true
+    flyButton.Font = Enum.Font.GothamBold
+    flyButton.Parent = screenGui
+    flyButton.Visible = true
 
-    flyButton.MouseButton1Click:Connect(ToggleFlight)
+    flyButton.MouseButton1Click:Connect(function()
+        ToggleFlight()
+        flyButton.Text = flying and "إيقاف الطيران" or "تشغيل الطيران"
+    end)
 
-    -- Input bindings
+    -- WASD تحكم (احتياطي للي معهم كيبورد)
     UIS.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.W then controls.forward = true end
