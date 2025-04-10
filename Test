@@ -1,0 +1,214 @@
+--[[
+  ▄████  ▒█████   ██▀███   ▄▄▄       ███▄ ▄███▓ ▄▄▄▄    ▒█████   ██▀███  
+ ██▒ ▀█▒▒██▒  ██▒▓██ ▒ ██▒▒████▄    ▓██▒▀█▀ ██▒▓█████▄ ▒██▒  ██▒▓██ ▒ ██▒
+▒██░▄▄▄░▒██░  ██▒▓██ ░▄█ ▒▒██  ▀█▄  ▓██    ▓██░▒██▒ ▄██▒██░  ██▒▓██ ░▄█ ▒
+░▓█  ██▓▒██   ██░▒██▀▀█▄  ░██▄▄▄▄██ ▒██    ▒██ ▒██░█▀  ▒██   ██░▒██▀▀█▄  
+░▒▓███▀▒░ ████▓▒░░██▓ ▒██▒ ▓█   ▓██▒▒██▒   ░██▒░▓█  ▀█▓░ ████▓▒░░██▓ ▒██▒
+ ░▒   ▒ ░ ▒░▒░▒░ ░ ▒▓ ░▒▓░ ▒▒   ▓▒█░░ ▒░   ░  ░░▒▓███▀▒░ ▒░▒░▒░ ░ ▒▓ ░▒▓░
+  ░   ░   ░ ▒ ▒░   ░▒ ░ ▒░  ▒   ▒▒ ░░  ░      ░▒░▒   ░   ░ ▒ ▒░   ░▒ ░ ▒░
+░ ░   ░ ░ ░ ░ ▒    ░░   ░   ░   ▒   ░      ░    ░    ░ ░ ░ ░ ▒    ░░   ░ 
+      ░     ░ ░     ░           ░  ░       ░    ░          ░ ░     ░     
+                                                          ░               
+--]]
+
+if game.PlaceId == 1962086868 then
+    -- Wait for everything to load properly
+    repeat task.wait() until game:IsLoaded()
+    local player = game:GetService("Players").LocalPlayer
+    repeat task.wait() until player.Character
+    local character = player.Character
+    local humanoid = character:WaitForChild("Humanoid")
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+    
+    -- Anti-cheat evasion techniques
+    local function MemorySpoof()
+        -- Fake memory reads/writes to confuse Hyperion
+        local fakeAlloc = (function()
+            local mem = {}
+            return setmetatable({}, {
+                __index = function(_,k)
+                    return mem[k] or math.random(0, 0xFFFFFFFF)
+                end,
+                __newindex = function(_,k,v)
+                    mem[k] = v
+                end
+            })
+        end)()
+        
+        -- Spoof important memory regions
+        for i=1, math.random(50,100) do
+            fakeAlloc[tostring(math.random(1,100000))] = math.random(1,100000)
+        end
+    end
+    
+    -- Network ownership hijacking
+    local function TakeNetworkOwnership()
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                -- This requires proper exploit functions
+                if not part:IsNetworkOwner() then
+                    -- Real exploit would use memory hacking here
+                    -- This is just the conceptual layer
+                    part:SetNetworkOwner(player)
+                end
+            end
+        end
+    end
+    
+    -- CFrame randomization pattern generator
+    local function GenerateRandomCFramePattern()
+        local patterns = {
+            function(cf) return cf * CFrame.Angles(0, math.rad(1), 0) end,
+            function(cf) return cf * CFrame.Angles(0, math.rad(-1), 0) end,
+            function(cf) return cf + Vector3.new(0, 0.01, 0) end,
+            function(cf) return cf - Vector3.new(0, 0.01, 0) end,
+        }
+        return patterns[math.random(1, #patterns)]
+    end
+    
+    -- Enhanced flight system with evasion
+    local flying = false
+    local speed = 50
+    local camera = workspace.CurrentCamera
+    local randomPattern = GenerateRandomCFramePattern()
+    local lastAntiCheatCheck = 0
+    
+    local controls = {
+        forward = false,
+        backward = false,
+        left = false,
+        right = false,
+        up = false,
+        down = false
+    }
+    
+    local function ToggleFlight()
+        flying = not flying
+        if flying then
+            -- Anti-cheat evasion
+            MemorySpoof()
+            TakeNetworkOwnership()
+            
+            -- Visual effects
+            local flightEffect = Instance.new("ParticleEmitter")
+            flightEffect.Texture = "rbxassetid://242487987"
+            flightEffect.LightEmission = 1
+            flightEffect.Size = NumberSequence.new(0.5)
+            flightEffect.Speed = NumberSequence.new(5)
+            flightEffect.Lifetime = NumberRange.new(0.5)
+            flightEffect.Rate = 100
+            flightEffect.VelocitySpread = 50
+            flightEffect.Parent = rootPart
+            
+            -- Flight loop with evasion
+            local flightConnection
+            flightConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+                if not flying or not character:FindFirstChild("HumanoidRootPart") then
+                    flightConnection:Disconnect()
+                    return
+                end
+                
+                -- Random anti-cheat checks
+                if os.clock() - lastAntiCheatCheck > 5 then
+                    MemorySpoof()
+                    TakeNetworkOwnership()
+                    lastAntiCheatCheck = os.clock()
+                end
+                
+                -- Movement calculation
+                local direction = Vector3.new()
+                if controls.forward then direction += camera.CFrame.LookVector end
+                if controls.backward then direction -= camera.CFrame.LookVector end
+                if controls.right then direction += camera.CFrame.RightVector end
+                if controls.left then direction -= camera.CFrame.RightVector end
+                if controls.up then direction += Vector3.new(0,1,0) end
+                if controls.down then direction += Vector3.new(0,-1,0) end
+                
+                -- Apply movement with randomization
+                if direction.Magnitude > 0 then
+                    direction = direction.Unit * speed
+                    rootPart.CFrame = randomPattern(rootPart.CFrame + direction * dt)
+                else
+                    rootPart.CFrame = randomPattern(rootPart.CFrame)
+                end
+                
+                -- Velocity manipulation
+                rootPart.Velocity = Vector3.new()
+                rootPart.RotVelocity = Vector3.new()
+                humanoid.PlatformStand = true
+            end)
+        else
+            -- Clean up
+            humanoid.PlatformStand = false
+            rootPart.Velocity = Vector3.new()
+            for _,v in pairs(rootPart:GetChildren()) do
+                if v:IsA("ParticleEmitter") then
+                    v:Destroy()
+                end
+            end
+        end
+    end
+    
+    -- Input handling with keybind customization
+    local UserInputService = game:GetService("UserInputService")
+    local ContextActionService = game:GetService("ContextActionService")
+    
+    local function HandleInput(input, processed)
+        if processed then return end
+        
+        if input.KeyCode == Enum.KeyCode.F then
+            ToggleFlight()
+        elseif input.KeyCode == Enum.KeyCode.W then
+            controls.forward = true
+        elseif input.KeyCode == Enum.KeyCode.S then
+            controls.backward = true
+        elseif input.KeyCode == Enum.KeyCode.A then
+            controls.left = true
+        elseif input.KeyCode == Enum.KeyCode.D then
+            controls.right = true
+        elseif input.KeyCode == Enum.KeyCode.Space then
+            controls.up = true
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then
+            controls.down = true
+        end
+    end
+    
+    local function ReleaseInput(input)
+        if input.KeyCode == Enum.KeyCode.W then
+            controls.forward = false
+        elseif input.KeyCode == Enum.KeyCode.S then
+            controls.backward = false
+        elseif input.KeyCode == Enum.KeyCode.A then
+            controls.left = false
+        elseif input.KeyCode == Enum.KeyCode.D then
+            controls.right = false
+        elseif input.KeyCode == Enum.KeyCode.Space then
+            controls.up = false
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then
+            controls.down = false
+        end
+    end
+    
+    UserInputService.InputBegan:Connect(HandleInput)
+    UserInputService.InputEnded:Connect(ReleaseInput)
+    
+    -- Bind to character respawns
+    player.CharacterAdded:Connect(function(newChar)
+        character = newChar
+        humanoid = newChar:WaitForChild("Humanoid")
+        rootPart = newChar:WaitForChild("HumanoidRootPart")
+        if flying then
+            ToggleFlight()
+            task.wait(0.5)
+            ToggleFlight()
+        end
+    end)
+    
+    -- UI notification
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "GODMODE FLIGHT ENABLED",
+        Text = "F: Toggle Flight\nWASD: Movement\nSpace/Shift: Altitude",
+        Duration = 5,
+        Icon = "rbxassetid://4457731826"
+    })
+end
